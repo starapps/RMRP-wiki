@@ -18,7 +18,6 @@
             padding-bottom: 40px;
         }
 
-        /* Экран категорий / главное меню */
         .screen {
             display: block;
         }
@@ -61,7 +60,6 @@
             font-weight: 500;
         }
 
-        /* Сетка товаров */
         .items-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -97,7 +95,6 @@
             font-size: 15px;
         }
 
-        /* Детальный экран */
         .detail-container {
             background: white;
             border-radius: 28px;
@@ -156,6 +153,9 @@
             margin-bottom: 12px;
         }
     </style>
+    <!-- Подключаем VK Bridge -->
+    <script src="https://vk.com/js/api/xd_connection.js?2" type="text/javascript"></script>
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
 </head>
 <body>
 
@@ -180,7 +180,7 @@
 </div>
 
 <script>
-    // ---------- ДАННЫЕ (вся база знаний прямо здесь) ----------
+    // ---------- ДАННЫЕ ----------
     const categories = [
         { id: "tech", name: "📱 Гаджеты", cover: "https://picsum.photos/id/0/400/200", desc: "Смартфоны, часы, наушники" },
         { id: "home", name: "🏠 Дом", cover: "https://picsum.photos/id/20/400/200", desc: "Уют и техника для дома" },
@@ -205,7 +205,6 @@
         ]
     };
 
-    // Вспомогательные функции отображения
     function showScreen(screenId) {
         document.getElementById("categoriesScreen").classList.add("hidden");
         document.getElementById("itemsScreen").classList.add("hidden");
@@ -213,7 +212,6 @@
         document.getElementById(screenId).classList.remove("hidden");
     }
 
-    // Рендер главного меню (категории)
     function renderCategories() {
         const container = document.getElementById("categoriesContainer");
         container.innerHTML = "";
@@ -229,7 +227,9 @@
         });
     }
 
-    // Открыть категорию -> показать товары
+    let currentCategoryId = "";
+    let lastCategoryId = "";
+
     function openCategory(catId, catName) {
         currentCategoryId = catId;
         document.getElementById("categoryTitle").innerText = catName;
@@ -255,7 +255,6 @@
         showScreen("itemsScreen");
     }
 
-    // Открыть детальную карточку товара
     function openDetail(categoryId, itemId) {
         const foundItem = items[categoryId]?.find(i => i.id === itemId);
         if (!foundItem) return;
@@ -271,22 +270,15 @@
             </div>
         `;
         showScreen("detailScreen");
-        // Запоминаем, из какой категории пришли, чтобы кнопка "Назад" работала правильно
         lastCategoryId = categoryId;
     }
 
-    // Переменные для навигации
-    let currentCategoryId = "";
-    let lastCategoryId = "";
-
-    // Настройка кнопок "Назад"
     function setupBackButtons() {
         document.getElementById("backToCategoriesBtn").onclick = () => {
             showScreen("categoriesScreen");
         };
         document.getElementById("backToItemsBtn").onclick = () => {
             if (currentCategoryId) {
-                // открываем ту же категорию снова (сохраняем её имя)
                 const cat = categories.find(c => c.id === currentCategoryId);
                 if (cat) openCategory(currentCategoryId, cat.name);
                 else showScreen("categoriesScreen");
@@ -296,15 +288,20 @@
         };
     }
 
-    // Старт приложения
     renderCategories();
     setupBackButtons();
     showScreen("categoriesScreen");
 
-    // Для VK Mini App можно сообщить, что приложение готово
-    if (window.VKWebApp) {
-        window.VKWebApp.sendEvent('VKWebAppInit', {});
-    }
+    // Инициализация VK Bridge
+    window.addEventListener('load', function() {
+        if (window.vkBridge) {
+            window.vkBridge.send('VKWebAppInit')
+                .then(() => console.log('VK Bridge: инициализация успешна'))
+                .catch(e => console.error('Ошибка инициализации VK Bridge:', e));
+        } else {
+            console.error('VK Bridge не загрузился');
+        }
+    });
 </script>
 </body>
 </html>
