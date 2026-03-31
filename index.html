@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Вики — товары</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #f2f2f2;
+            padding: 16px;
+            padding-bottom: 40px;
+        }
+
+        /* Экран категорий / главное меню */
+        .screen {
+            display: block;
+        }
+
+        .screen.hidden {
+            display: none;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .category-card:active {
+            transform: scale(0.97);
+        }
+
+        .category-card img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .category-card h3 {
+            padding: 12px 8px;
+            font-size: 16px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Сетка товаров */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .item-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+
+        .item-card:active {
+            transform: scale(0.97);
+        }
+
+        .item-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
+
+        .item-card .info {
+            padding: 10px;
+        }
+
+        .item-card .title {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        /* Детальный экран */
+        .detail-container {
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .detail-img {
+            width: 100%;
+            max-height: 320px;
+            object-fit: cover;
+        }
+
+        .detail-content {
+            padding: 20px;
+        }
+
+        .detail-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .detail-desc {
+            font-size: 16px;
+            line-height: 1.45;
+            color: #2c2c2e;
+            margin-bottom: 24px;
+        }
+
+        .back-button {
+            background: #e1e1e1;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+
+        .back-button:active {
+            opacity: 0.7;
+        }
+
+        h2 {
+            font-size: 22px;
+            margin: 8px 0 4px 0;
+        }
+
+        .sub {
+            color: #6c6c70;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ЭКРАН: КАТЕГОРИИ -->
+<div id="categoriesScreen" class="screen">
+    <h2>📚 Каталог вики</h2>
+    <div class="sub">Выбери раздел</div>
+    <div id="categoriesContainer" class="categories-grid"></div>
+</div>
+
+<!-- ЭКРАН: СПИСОК ТОВАРОВ В КАТЕГОРИИ -->
+<div id="itemsScreen" class="screen hidden">
+    <button class="back-button" id="backToCategoriesBtn">← Назад</button>
+    <h2 id="categoryTitle">Категория</h2>
+    <div id="itemsContainer" class="items-grid"></div>
+</div>
+
+<!-- ЭКРАН: ДЕТАЛЬНОЕ ОПИСАНИЕ -->
+<div id="detailScreen" class="screen hidden">
+    <button class="back-button" id="backToItemsBtn">← Назад к списку</button>
+    <div id="detailContent"></div>
+</div>
+
+<script>
+    // ---------- ДАННЫЕ (вся база знаний прямо здесь) ----------
+    const categories = [
+        { id: "tech", name: "📱 Гаджеты", cover: "https://picsum.photos/id/0/400/200", desc: "Смартфоны, часы, наушники" },
+        { id: "home", name: "🏠 Дом", cover: "https://picsum.photos/id/20/400/200", desc: "Уют и техника для дома" },
+        { id: "style", name: "👕 Стиль", cover: "https://picsum.photos/id/26/400/200", desc: "Одежда и аксессуары" }
+    ];
+
+    const items = {
+        tech: [
+            { id: "phone", name: "Смартфон X", img: "https://picsum.photos/id/0/300/300", description: "Мощный процессор, 128 ГБ памяти, отличная камера. Цвет: космический черный." },
+            { id: "watch", name: "Умные часы", img: "https://picsum.photos/id/82/300/300", description: "Отслеживание сна, шагов, уведомления с телефона. Водонепроницаемые." },
+            { id: "pods", name: "Наушники Pro", img: "https://picsum.photos/id/1/300/300", description: "Активное шумоподавление, 24 часа работы, чистый звук." }
+        ],
+        home: [
+            { id: "lamp", name: "Умная лампа", img: "https://picsum.photos/id/3/300/300", description: "RGB подсветка, управление с телефона, таймер сна." },
+            { id: "robot", name: "Робот-пылесос", img: "https://picsum.photos/id/13/300/300", description: "Строит карту комнаты, убирает шерсть, работает 2 часа." },
+            { id: "kettle", name: "Электрочайник", img: "https://picsum.photos/id/30/300/300", description: "Терморегуляция, поддержание температуры, 1.7 литра." }
+        ],
+        style: [
+            { id: "backpack", name: "Рюкзак", img: "https://picsum.photos/id/47/300/300", description: "Водоотталкивающая ткань, отдел для ноутбука 15 дюймов." },
+            { id: "cap", name: "Бейсболка", img: "https://picsum.photos/id/20/300/300", description: "Хлопок, регулировка, 3 цвета в ассортименте." },
+            { id: "watch_strap", name: "Ремешок для часов", img: "https://picsum.photos/id/96/300/300", description: "Кожаный, подходит для большинства смарт-часов." }
+        ]
+    };
+
+    // Вспомогательные функции отображения
+    function showScreen(screenId) {
+        document.getElementById("categoriesScreen").classList.add("hidden");
+        document.getElementById("itemsScreen").classList.add("hidden");
+        document.getElementById("detailScreen").classList.add("hidden");
+        document.getElementById(screenId).classList.remove("hidden");
+    }
+
+    // Рендер главного меню (категории)
+    function renderCategories() {
+        const container = document.getElementById("categoriesContainer");
+        container.innerHTML = "";
+        categories.forEach(cat => {
+            const card = document.createElement("div");
+            card.className = "category-card";
+            card.onclick = () => openCategory(cat.id, cat.name);
+            card.innerHTML = `
+                <img src="${cat.cover}" alt="${cat.name}" loading="lazy">
+                <h3>${cat.name}</h3>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // Открыть категорию -> показать товары
+    function openCategory(catId, catName) {
+        currentCategoryId = catId;
+        document.getElementById("categoryTitle").innerText = catName;
+        const itemsList = items[catId] || [];
+        const itemsContainer = document.getElementById("itemsContainer");
+        itemsContainer.innerHTML = "";
+        if (itemsList.length === 0) {
+            itemsContainer.innerHTML = "<div style='padding: 20px; text-align:center;'>Товаров пока нет</div>";
+        } else {
+            itemsList.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "item-card";
+                card.onclick = () => openDetail(catId, item.id);
+                card.innerHTML = `
+                    <img src="${item.img}" alt="${item.name}" loading="lazy">
+                    <div class="info">
+                        <div class="title">${item.name}</div>
+                    </div>
+                `;
+                itemsContainer.appendChild(card);
+            });
+        }
+        showScreen("itemsScreen");
+    }
+
+    // Открыть детальную карточку товара
+    function openDetail(categoryId, itemId) {
+        const foundItem = items[categoryId]?.find(i => i.id === itemId);
+        if (!foundItem) return;
+        
+        const detailDiv = document.getElementById("detailContent");
+        detailDiv.innerHTML = `
+            <div class="detail-container">
+                <img class="detail-img" src="${foundItem.img}" alt="${foundItem.name}">
+                <div class="detail-content">
+                    <div class="detail-title">${foundItem.name}</div>
+                    <div class="detail-desc">${foundItem.description}</div>
+                </div>
+            </div>
+        `;
+        showScreen("detailScreen");
+        // Запоминаем, из какой категории пришли, чтобы кнопка "Назад" работала правильно
+        lastCategoryId = categoryId;
+    }
+
+    // Переменные для навигации
+    let currentCategoryId = "";
+    let lastCategoryId = "";
+
+    // Настройка кнопок "Назад"
+    function setupBackButtons() {
+        document.getElementById("backToCategoriesBtn").onclick = () => {
+            showScreen("categoriesScreen");
+        };
+        document.getElementById("backToItemsBtn").onclick = () => {
+            if (currentCategoryId) {
+                // открываем ту же категорию снова (сохраняем её имя)
+                const cat = categories.find(c => c.id === currentCategoryId);
+                if (cat) openCategory(currentCategoryId, cat.name);
+                else showScreen("categoriesScreen");
+            } else {
+                showScreen("categoriesScreen");
+            }
+        };
+    }
+
+    // Старт приложения
+    renderCategories();
+    setupBackButtons();
+    showScreen("categoriesScreen");
+
+    // Для VK Mini App можно сообщить, что приложение готово
+    if (window.VKWebApp) {
+        window.VKWebApp.sendEvent('VKWebAppInit', {});
+    }
+</script>
+</body>
+</html>
