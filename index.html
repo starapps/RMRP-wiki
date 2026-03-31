@@ -153,34 +153,29 @@
             margin-bottom: 12px;
         }
     </style>
-    <!-- Подключаем VK Bridge -->
     <script src="https://vk.com/js/api/xd_connection.js?2" type="text/javascript"></script>
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
 </head>
 <body>
 
-<!-- ЭКРАН: КАТЕГОРИИ -->
 <div id="categoriesScreen" class="screen">
     <h2>📚 Каталог вики</h2>
     <div class="sub">Выбери раздел</div>
     <div id="categoriesContainer" class="categories-grid"></div>
 </div>
 
-<!-- ЭКРАН: СПИСОК ТОВАРОВ В КАТЕГОРИИ -->
 <div id="itemsScreen" class="screen hidden">
     <button class="back-button" id="backToCategoriesBtn">← Назад</button>
     <h2 id="categoryTitle">Категория</h2>
     <div id="itemsContainer" class="items-grid"></div>
 </div>
 
-<!-- ЭКРАН: ДЕТАЛЬНОЕ ОПИСАНИЕ -->
 <div id="detailScreen" class="screen hidden">
     <button class="back-button" id="backToItemsBtn">← Назад к списку</button>
     <div id="detailContent"></div>
 </div>
 
 <script>
-    // ---------- ДАННЫЕ ----------
     const categories = [
         { id: "tech", name: "📱 Гаджеты", cover: "https://picsum.photos/id/0/400/200", desc: "Смартфоны, часы, наушники" },
         { id: "home", name: "🏠 Дом", cover: "https://picsum.photos/id/20/400/200", desc: "Уют и техника для дома" },
@@ -292,7 +287,6 @@
     setupBackButtons();
     showScreen("categoriesScreen");
 
-    // Инициализация VK Bridge
     window.addEventListener('load', function() {
         if (window.vkBridge) {
             window.vkBridge.send('VKWebAppInit')
