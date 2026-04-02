@@ -46,11 +46,12 @@
             transform: scale(0.97);
         }
 
-        .category-card img {
+        .category-card .cover-bg {
             width: 100%;
             height: 140px;
-            object-fit: cover;
-            display: block;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
         .category-card h3 {
@@ -80,10 +81,12 @@
             transform: scale(0.97);
         }
 
-        .item-card img {
+        .item-card .cover-bg {
             width: 100%;
             height: 160px;
-            object-fit: cover;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
         .item-card .info {
@@ -159,7 +162,8 @@
 <body>
 
 <div id="categoriesScreen" class="screen">
-    <h2>📚 RMRP wiki</h2>
+    <h2>📚 Каталог вики</h2>
+    <div class="sub">Выбери раздел</div>
     <div id="categoriesContainer" class="categories-grid"></div>
 </div>
 
@@ -176,26 +180,26 @@
 
 <script>
     const categories = [
-        { id: "tech", name: "📱 Гаджеты", cover: "https://sun7-22.userapi.com/impg/5peQrY-aWtE3-tBDc0mBghOFj856OVvANLu13Q/qkSULRBHc08.jpg?size=270x184&quality=95&crop=0,18,790,537&sign=a353f501bb26520a82fa4015b061c83e&c_uniq_tag=prMh4PUpNhlEmI9_kVm3GuDmUnhdg9uwdF2FFxBjeuk", desc: "Смартфоны, часы, наушники" },
-        { id: "home", name: "🏠 Дом", cover: "https://picsum.photos/id/20/400/200", desc: "Уют и техника для дома" },
-        { id: "style", name: "👕 Стиль", cover: "https://picsum.photos/id/26/400/200", desc: "Одежда и аксессуары" }
+        { id: "tech", name: "📱 Гаджеты", cover: "https://placekitten.com/400/200", desc: "Смартфоны, часы, наушники" },
+        { id: "home", name: "🏠 Дом", cover: "https://placekitten.com/401/200", desc: "Уют и техника для дома" },
+        { id: "style", name: "👕 Стиль", cover: "https://placekitten.com/402/200", desc: "Одежда и аксессуары" }
     ];
 
     const items = {
         tech: [
-            { id: "phone", name: "Смартфон X", img: "https://picsum.photos/id/0/300/300", description: "Мощный процессор, 128 ГБ памяти, отличная камера. Цвет: космический черный." },
-            { id: "watch", name: "Умные часы", img: "https://picsum.photos/id/82/300/300", description: "Отслеживание сна, шагов, уведомления с телефона. Водонепроницаемые." },
-            { id: "pods", name: "Наушники Pro", img: "https://picsum.photos/id/1/300/300", description: "Активное шумоподавление, 24 часа работы, чистый звук." }
+            { id: "phone", name: "Смартфон X", img: "https://placekitten.com/300/300", description: "Мощный процессор, 128 ГБ памяти, отличная камера. Цвет: космический черный." },
+            { id: "watch", name: "Умные часы", img: "https://placekitten.com/301/300", description: "Отслеживание сна, шагов, уведомления с телефона. Водонепроницаемые." },
+            { id: "pods", name: "Наушники Pro", img: "https://placekitten.com/302/300", description: "Активное шумоподавление, 24 часа работы, чистый звук." }
         ],
         home: [
-            { id: "lamp", name: "Умная лампа", img: "https://picsum.photos/id/3/300/300", description: "RGB подсветка, управление с телефона, таймер сна." },
-            { id: "robot", name: "Робот-пылесос", img: "https://picsum.photos/id/13/300/300", description: "Строит карту комнаты, убирает шерсть, работает 2 часа." },
-            { id: "kettle", name: "Электрочайник", img: "https://picsum.photos/id/30/300/300", description: "Терморегуляция, поддержание температуры, 1.7 литра." }
+            { id: "lamp", name: "Умная лампа", img: "https://placekitten.com/303/300", description: "RGB подсветка, управление с телефона, таймер сна." },
+            { id: "robot", name: "Робот-пылесос", img: "https://placekitten.com/304/300", description: "Строит карту комнаты, убирает шерсть, работает 2 часа." },
+            { id: "kettle", name: "Электрочайник", img: "https://placekitten.com/305/300", description: "Терморегуляция, поддержание температуры, 1.7 литра." }
         ],
         style: [
-            { id: "backpack", name: "Рюкзак", img: "https://picsum.photos/id/47/300/300", description: "Водоотталкивающая ткань, отдел для ноутбука 15 дюймов." },
-            { id: "cap", name: "Бейсболка", img: "https://picsum.photos/id/20/300/300", description: "Хлопок, регулировка, 3 цвета в ассортименте." },
-            { id: "watch_strap", name: "Ремешок для часов", img: "https://picsum.photos/id/96/300/300", description: "Кожаный, подходит для большинства смарт-часов." }
+            { id: "backpack", name: "Рюкзак", img: "https://placekitten.com/306/300", description: "Водоотталкивающая ткань, отдел для ноутбука 15 дюймов." },
+            { id: "cap", name: "Бейсболка", img: "https://placekitten.com/307/300", description: "Хлопок, регулировка, 3 цвета в ассортименте." },
+            { id: "watch_strap", name: "Ремешок для часов", img: "https://placekitten.com/308/300", description: "Кожаный, подходит для большинства смарт-часов." }
         ]
     };
 
@@ -214,7 +218,7 @@
             card.className = "category-card";
             card.onclick = () => openCategory(cat.id, cat.name);
             card.innerHTML = `
-                <img src="${cat.cover}" alt="${cat.name}" loading="lazy">
+                <div class="cover-bg" style="background-image: url('${cat.cover}');"></div>
                 <h3>${cat.name}</h3>
             `;
             container.appendChild(card);
@@ -238,7 +242,7 @@
                 card.className = "item-card";
                 card.onclick = () => openDetail(catId, item.id);
                 card.innerHTML = `
-                    <img src="${item.img}" alt="${item.name}" loading="lazy">
+                    <div class="cover-bg" style="background-image: url('${item.img}');"></div>
                     <div class="info">
                         <div class="title">${item.name}</div>
                     </div>
