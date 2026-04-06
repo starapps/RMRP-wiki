@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Вики — товары</title>
     <style>
+        /* Стили — всё, как вы настроили */
         * {
             margin: 0;
             padding: 0;
@@ -80,7 +81,7 @@
             font-size: 16px;
             text-align: center;
             font-weight: 500;
-            background: rgba(255,255,255,0.9); /* Полупрозрачная подложка для читаемости текста */
+            background: rgba(255,255,255,0.9);
         }
 
         .items-grid {
@@ -201,7 +202,7 @@
 </div>
 
 <script>
-    // ЗДЕСЬ ВЫ МОЖЕТЕ ЗАМЕНИТЬ ССЫЛКИ НА КАРТИНКИ КАТЕГОРИЙ И ТОВАРОВ
+    // ---------- 1. ДАННЫЕ (ваша база) ----------
     const categories = [
         { id: "tech", name: "📱 Гаджеты", cover: "https://placekitten.com/400/200", desc: "Смартфоны, часы, наушники" },
         { id: "home", name: "🏠 Дом", cover: "https://placekitten.com/401/200", desc: "Уют и техника для дома" },
@@ -226,13 +227,28 @@
         ]
     };
 
+    // ---------- 2. ФУНКЦИИ НАВИГАЦИИ ----------
+    let currentCategoryId = "";
+    let lastCategoryId = "";
+
     function showScreen(screenId) {
+        // Прячем все экраны и показываем нужный
         document.getElementById("categoriesScreen").classList.add("hidden");
         document.getElementById("itemsScreen").classList.add("hidden");
         document.getElementById("detailScreen").classList.add("hidden");
         document.getElementById(screenId).classList.remove("hidden");
+
+        // ВАЖНО: Отправляем событие в VK о настройках свайпа
+        if (window.vkBridge) {
+            // На главном экране разрешаем закрыть приложение свайпом (history: true)
+            // На всех остальных — запрещаем и используем для навигации внутри (history: false)
+            const isMainScreen = (screenId === "categoriesScreen");
+            window.vkBridge.send("VKWebAppSetSwipeSettings", { history: isMainScreen })
+                .catch(e => console.error("Ошибка настройки свайпа:", e));
+        }
     }
 
+    // ---------- 3. ОТРИСОВКА КАТЕГОРИЙ ----------
     function renderCategories() {
         const container = document.getElementById("categoriesContainer");
         container.innerHTML = "";
@@ -248,9 +264,7 @@
         });
     }
 
-    let currentCategoryId = "";
-    let lastCategoryId = "";
-
+    // ---------- 4. ОТРИСОВКА ТОВАРОВ В КАТЕГОРИИ ----------
     function openCategory(catId, catName) {
         currentCategoryId = catId;
         document.getElementById("categoryTitle").innerText = catName;
@@ -273,9 +287,12 @@
                 itemsContainer.appendChild(card);
             });
         }
+        // Добавляем запись в историю браузера
+        history.pushState({ screen: "itemsScreen", categoryId: catId, categoryName: catName }, "");
         showScreen("itemsScreen");
     }
 
+    // ---------- 5. ДЕТАЛЬНЫЙ ЭКРАН ТОВАРА ----------
     function openDetail(categoryId, itemId) {
         const foundItem = items[categoryId]?.find(i => i.id === itemId);
         if (!foundItem) return;
@@ -290,29 +307,58 @@
                 </div>
             </div>
         `;
+        // Добавляем запись в историю браузера
+        history.pushState({ screen: "detailScreen", categoryId: categoryId, itemId: itemId }, "");
         showScreen("detailScreen");
         lastCategoryId = categoryId;
     }
 
+    // ---------- 6. НАСТРОЙКА КНОПОК "НАЗАД" ----------
     function setupBackButtons() {
         document.getElementById("backToCategoriesBtn").onclick = () => {
-            showScreen("categoriesScreen");
+            // Возвращаемся на главный экран через историю
+            history.back();
         };
         document.getElementById("backToItemsBtn").onclick = () => {
-            if (currentCategoryId) {
-                const cat = categories.find(c => c.id === currentCategoryId);
-                if (cat) openCategory(currentCategoryId, cat.name);
-                else showScreen("categoriesScreen");
-            } else {
-                showScreen("categoriesScreen");
-            }
+            // Возвращаемся к списку товаров через историю
+            history.back();
         };
     }
 
+    // ---------- 7. ОБРАБОТЧИК СИСТЕМНОЙ КНОПКИ/СВАЙПА "НАЗАД" ----------
+    function setupPopStateHandler() {
+        window.addEventListener("popstate", (event) => {
+            // Если есть сохраненное состояние, восстанавливаем экран
+            if (event.state) {
+                const state = event.state;
+                if (state.screen === "itemsScreen") {
+                    // Восстанавливаем список товаров
+                    currentCategoryId = state.categoryId;
+                    openCategory(state.categoryId, state.categoryName);
+                } else if (state.screen === "detailScreen") {
+                    // Восстанавливаем детальный экран товара
+                    openDetail(state.categoryId, state.itemId);
+                } else {
+                    // Если состояние не распознано, показываем главный экран
+                    showScreen("categoriesScreen");
+                }
+            } else {
+                // Если истории нет, показываем главный экран
+                showScreen("categoriesScreen");
+            }
+        });
+    }
+
+    // ---------- 8. ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ----------
     renderCategories();
     setupBackButtons();
+    setupPopStateHandler(); // Включаем обработку навигации
     showScreen("categoriesScreen");
 
+    // Добавляем начальное состояние в историю
+    history.replaceState({ screen: "categoriesScreen" }, "");
+
+    // ---------- 9. ИНИЦИАЛИЗАЦИЯ VK BRIDGE ----------
     window.addEventListener('load', function() {
         if (window.vkBridge) {
             window.vkBridge.send('VKWebAppInit')
