@@ -202,172 +202,183 @@
 </div>
 
 <script>
-    // ---------- 1. ДАННЫЕ (ваша база) ----------
+    // ---------- ДАННЫЕ (категории и товары) ----------
     const categories = [
-        { id: "tech", name: "📱 Гаджеты", cover: "https://placekitten.com/400/200", desc: "Смартфоны, часы, наушники" },
-        { id: "home", name: "🏠 Дом", cover: "https://placekitten.com/401/200", desc: "Уют и техника для дома" },
-        { id: "style", name: "👕 Стиль", cover: "https://placekitten.com/402/200", desc: "Одежда и аксессуары" }
+        { id: "tech", name: "📱 Гаджеты", cover: "https://placekitten.com/400/200", desc: "..." },
+        { id: "home", name: "🏠 Дом", cover: "https://placekitten.com/401/200", desc: "..." },
+        { id: "style", name: "👕 Стиль", cover: "https://placekitten.com/402/200", desc: "..." }
     ];
 
     const items = {
-        tech: [
-            { id: "phone", name: "Смартфон X", img: "https://placekitten.com/300/300", description: "Мощный процессор, 128 ГБ памяти, отличная камера. Цвет: космический черный." },
-            { id: "watch", name: "Умные часы", img: "https://placekitten.com/301/300", description: "Отслеживание сна, шагов, уведомления с телефона. Водонепроницаемые." },
-            { id: "pods", name: "Наушники Pro", img: "https://placekitten.com/302/300", description: "Активное шумоподавление, 24 часа работы, чистый звук." }
-        ],
-        home: [
-            { id: "lamp", name: "Умная лампа", img: "https://placekitten.com/303/300", description: "RGB подсветка, управление с телефона, таймер сна." },
-            { id: "robot", name: "Робот-пылесос", img: "https://placekitten.com/304/300", description: "Строит карту комнаты, убирает шерсть, работает 2 часа." },
-            { id: "kettle", name: "Электрочайник", img: "https://placekitten.com/305/300", description: "Терморегуляция, поддержание температуры, 1.7 литра." }
-        ],
-        style: [
-            { id: "backpack", name: "Рюкзак", img: "https://placekitten.com/306/300", description: "Водоотталкивающая ткань, отдел для ноутбука 15 дюймов." },
-            { id: "cap", name: "Бейсболка", img: "https://placekitten.com/307/300", description: "Хлопок, регулировка, 3 цвета в ассортименте." },
-            { id: "watch_strap", name: "Ремешок для часов", img: "https://placekitten.com/308/300", description: "Кожаный, подходит для большинства смарт-часов." }
-        ]
+        tech: [ /* ... ваши товары ... */ ],
+        home: [ /* ... */ ],
+        style: [ /* ... */ ]
     };
 
-    // ---------- 2. ФУНКЦИИ НАВИГАЦИИ ----------
-    let currentCategoryId = "";
-    let lastCategoryId = "";
+    // ---------- ПЕРЕМЕННЫЕ СОСТОЯНИЯ ----------
+    let currentScreen = 'categories'; // 'categories', 'items', 'detail'
+    let currentCategoryId = '';
+    let currentCategoryName = '';
+    let currentItemId = '';
 
-    function showScreen(screenId) {
-        // Прячем все экраны и показываем нужный
-        document.getElementById("categoriesScreen").classList.add("hidden");
-        document.getElementById("itemsScreen").classList.add("hidden");
-        document.getElementById("detailScreen").classList.add("hidden");
-        document.getElementById(screenId).classList.remove("hidden");
+    // ---------- ФУНКЦИЯ ОБНОВЛЕНИЯ ИНТЕРФЕЙСА ----------
+    function updateUI() {
+        // Прячем все экраны
+        document.getElementById('categoriesScreen').classList.add('hidden');
+        document.getElementById('itemsScreen').classList.add('hidden');
+        document.getElementById('detailScreen').classList.add('hidden');
 
-        // ВАЖНО: Отправляем событие в VK о настройках свайпа
-        if (window.vkBridge) {
-            // На главном экране разрешаем закрыть приложение свайпом (history: true)
-            // На всех остальных — запрещаем и используем для навигации внутри (history: false)
-            const isMainScreen = (screenId === "categoriesScreen");
-            window.vkBridge.send("VKWebAppSetSwipeSettings", { history: isMainScreen })
-                .catch(e => console.error("Ошибка настройки свайпа:", e));
+        if (currentScreen === 'categories') {
+            document.getElementById('categoriesScreen').classList.remove('hidden');
+            // Настройка свайпа: разрешаем закрытие приложения
+            if (window.vkBridge) {
+                window.vkBridge.send('VKWebAppSetSwipeSettings', { history: true }).catch(e => console.error(e));
+            }
+        } 
+        else if (currentScreen === 'items') {
+            // Отрисовываем список товаров для текущей категории
+            document.getElementById('categoryTitle').innerText = currentCategoryName;
+            const itemsList = items[currentCategoryId] || [];
+            const container = document.getElementById('itemsContainer');
+            container.innerHTML = '';
+            if (itemsList.length === 0) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;">Товаров пока нет</div>';
+            } else {
+                itemsList.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'item-card';
+                    card.onclick = () => {
+                        // Переход на детальный экран
+                        currentScreen = 'detail';
+                        currentItemId = item.id;
+                        // Добавляем запись в историю
+                        history.pushState({ screen: 'detail', categoryId: currentCategoryId, itemId: item.id }, '');
+                        updateUI();
+                    };
+                    card.innerHTML = `
+                        <div class="cover-bg" style="background-image: url('${item.img}');"></div>
+                        <div class="info"><div class="title">${item.name}</div></div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+            document.getElementById('itemsScreen').classList.remove('hidden');
+            // Запрещаем закрытие свайпом, используем для навигации
+            if (window.vkBridge) {
+                window.vkBridge.send('VKWebAppSetSwipeSettings', { history: false }).catch(e => console.error(e));
+            }
+        }
+        else if (currentScreen === 'detail') {
+            // Отрисовываем детальный экран
+            const foundItem = items[currentCategoryId]?.find(i => i.id === currentItemId);
+            if (foundItem) {
+                const detailDiv = document.getElementById('detailContent');
+                detailDiv.innerHTML = `
+                    <div class="detail-container">
+                        <img class="detail-img" src="${foundItem.img}" alt="${foundItem.name}">
+                        <div class="detail-content">
+                            <div class="detail-title">${foundItem.name}</div>
+                            <div class="detail-desc">${foundItem.description}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            document.getElementById('detailScreen').classList.remove('hidden');
+            // Запрещаем закрытие свайпом
+            if (window.vkBridge) {
+                window.vkBridge.send('VKWebAppSetSwipeSettings', { history: false }).catch(e => console.error(e));
+            }
         }
     }
 
-    // ---------- 3. ОТРИСОВКА КАТЕГОРИЙ ----------
-    function renderCategories() {
-        const container = document.getElementById("categoriesContainer");
-        container.innerHTML = "";
+    // ---------- НАВИГАЦИЯ ПО КНОПКАМ "НАЗАД" ----------
+    function goBack() {
+        if (currentScreen === 'detail') {
+            // Возврат к списку товаров
+            currentScreen = 'items';
+            // Заменяем текущее состояние в истории, чтобы не плодить лишние записи
+            history.replaceState({ screen: 'items', categoryId: currentCategoryId, categoryName: currentCategoryName }, '');
+            updateUI();
+        } 
+        else if (currentScreen === 'items') {
+            // Возврат на главный экран
+            currentScreen = 'categories';
+            history.replaceState({ screen: 'categories' }, '');
+            updateUI();
+        }
+        // На главном экране кнопки "назад" нет, но если вызовут — ничего не делаем
+    }
+
+    // ---------- ОБРАБОТЧИК СВАЙПА/СИСТЕМНОЙ КНОПКИ НАЗАД ----------
+    window.addEventListener('popstate', (event) => {
+        if (event.state) {
+            // Восстанавливаем состояние из истории
+            const state = event.state;
+            if (state.screen === 'categories') {
+                currentScreen = 'categories';
+                updateUI();
+            } 
+            else if (state.screen === 'items') {
+                currentScreen = 'items';
+                currentCategoryId = state.categoryId;
+                currentCategoryName = state.categoryName;
+                updateUI();
+            }
+            else if (state.screen === 'detail') {
+                currentScreen = 'detail';
+                currentCategoryId = state.categoryId;
+                currentItemId = state.itemId;
+                updateUI();
+            }
+        } else {
+            // Если нет состояния, уходим на главный экран
+            currentScreen = 'categories';
+            updateUI();
+        }
+    });
+
+    // ---------- ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ----------
+    function init() {
+        // Рендерим категории (главный экран)
+        const container = document.getElementById('categoriesContainer');
+        container.innerHTML = '';
         categories.forEach(cat => {
-            const card = document.createElement("div");
-            card.className = "category-card";
-            card.onclick = () => openCategory(cat.id, cat.name);
+            const card = document.createElement('div');
+            card.className = 'category-card';
+            card.onclick = () => {
+                // Переход в категорию
+                currentScreen = 'items';
+                currentCategoryId = cat.id;
+                currentCategoryName = cat.name;
+                // Добавляем состояние в историю
+                history.pushState({ screen: 'items', categoryId: cat.id, categoryName: cat.name }, '');
+                updateUI();
+            };
             card.innerHTML = `
                 <div class="cover-bg" style="background-image: url('${cat.cover}');"></div>
                 <h3>${cat.name}</h3>
             `;
             container.appendChild(card);
         });
-    }
 
-    // ---------- 4. ОТРИСОВКА ТОВАРОВ В КАТЕГОРИИ ----------
-    function openCategory(catId, catName) {
-        currentCategoryId = catId;
-        document.getElementById("categoryTitle").innerText = catName;
-        const itemsList = items[catId] || [];
-        const itemsContainer = document.getElementById("itemsContainer");
-        itemsContainer.innerHTML = "";
-        if (itemsList.length === 0) {
-            itemsContainer.innerHTML = "<div style='padding: 20px; text-align:center;'>Товаров пока нет</div>";
-        } else {
-            itemsList.forEach(item => {
-                const card = document.createElement("div");
-                card.className = "item-card";
-                card.onclick = () => openDetail(catId, item.id);
-                card.innerHTML = `
-                    <div class="cover-bg" style="background-image: url('${item.img}');"></div>
-                    <div class="info">
-                        <div class="title">${item.name}</div>
-                    </div>
-                `;
-                itemsContainer.appendChild(card);
-            });
-        }
-        // Добавляем запись в историю браузера
-        history.pushState({ screen: "itemsScreen", categoryId: catId, categoryName: catName }, "");
-        showScreen("itemsScreen");
-    }
+        // Настройка кнопок "Назад"
+        document.getElementById('backToCategoriesBtn').onclick = goBack;
+        document.getElementById('backToItemsBtn').onclick = goBack;
 
-    // ---------- 5. ДЕТАЛЬНЫЙ ЭКРАН ТОВАРА ----------
-    function openDetail(categoryId, itemId) {
-        const foundItem = items[categoryId]?.find(i => i.id === itemId);
-        if (!foundItem) return;
-        
-        const detailDiv = document.getElementById("detailContent");
-        detailDiv.innerHTML = `
-            <div class="detail-container">
-                <img class="detail-img" src="${foundItem.img}" alt="${foundItem.name}">
-                <div class="detail-content">
-                    <div class="detail-title">${foundItem.name}</div>
-                    <div class="detail-desc">${foundItem.description}</div>
-                </div>
-            </div>
-        `;
-        // Добавляем запись в историю браузера
-        history.pushState({ screen: "detailScreen", categoryId: categoryId, itemId: itemId }, "");
-        showScreen("detailScreen");
-        lastCategoryId = categoryId;
-    }
+        // Начальное состояние
+        currentScreen = 'categories';
+        history.replaceState({ screen: 'categories' }, '');
+        updateUI();
 
-    // ---------- 6. НАСТРОЙКА КНОПОК "НАЗАД" ----------
-    function setupBackButtons() {
-        document.getElementById("backToCategoriesBtn").onclick = () => {
-            // Возвращаемся на главный экран через историю
-            history.back();
-        };
-        document.getElementById("backToItemsBtn").onclick = () => {
-            // Возвращаемся к списку товаров через историю
-            history.back();
-        };
-    }
-
-    // ---------- 7. ОБРАБОТЧИК СИСТЕМНОЙ КНОПКИ/СВАЙПА "НАЗАД" ----------
-    function setupPopStateHandler() {
-        window.addEventListener("popstate", (event) => {
-            // Если есть сохраненное состояние, восстанавливаем экран
-            if (event.state) {
-                const state = event.state;
-                if (state.screen === "itemsScreen") {
-                    // Восстанавливаем список товаров
-                    currentCategoryId = state.categoryId;
-                    openCategory(state.categoryId, state.categoryName);
-                } else if (state.screen === "detailScreen") {
-                    // Восстанавливаем детальный экран товара
-                    openDetail(state.categoryId, state.itemId);
-                } else {
-                    // Если состояние не распознано, показываем главный экран
-                    showScreen("categoriesScreen");
-                }
-            } else {
-                // Если истории нет, показываем главный экран
-                showScreen("categoriesScreen");
-            }
-        });
-    }
-
-    // ---------- 8. ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ----------
-    renderCategories();
-    setupBackButtons();
-    setupPopStateHandler(); // Включаем обработку навигации
-    showScreen("categoriesScreen");
-
-    // Добавляем начальное состояние в историю
-    history.replaceState({ screen: "categoriesScreen" }, "");
-
-    // ---------- 9. ИНИЦИАЛИЗАЦИЯ VK BRIDGE ----------
-    window.addEventListener('load', function() {
+        // Инициализация VK Bridge
         if (window.vkBridge) {
             window.vkBridge.send('VKWebAppInit')
-                .then(() => console.log('VK Bridge: инициализация успешна'))
-                .catch(e => console.error('Ошибка инициализации VK Bridge:', e));
-        } else {
-            console.error('VK Bridge не загрузился');
+                .then(() => console.log('VK Bridge инициализирован'))
+                .catch(e => console.error(e));
         }
-    });
+    }
+
+    init();
 </script>
 </body>
 </html>
