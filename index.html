@@ -14,6 +14,27 @@
         body {
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
             background: #f2f2f2;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Главный экран (категории) с фоновой картинкой на весь экран */
+        #categoriesScreen {
+            background-image: url('https://sun9-27.userapi.com/s/v1/ig2/DCPWFdfpl0ZK8takuXG4553WRuCYj5KVrwXU1C4huPxurLouFLJe2wDA3AKsRzQ9ZgSvUPGgwUjm0FH-cI9DWaQ6.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720,1440x810,2560x1440&from=bu&cs=2560x0');   /* ЗАМЕНИТЕ НА ВАШУ ССЫЛКУ */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 16px;
+            padding-bottom: 40px;
+        }
+
+        /* Экран списка товаров и детальный экран без фоновой картинки (светлый фон) */
+        #itemsScreen, #detailScreen {
+            background: #f2f2f2;
+            min-height: 100vh;
             padding: 16px;
             padding-bottom: 40px;
         }
@@ -59,6 +80,7 @@
             font-size: 16px;
             text-align: center;
             font-weight: 500;
+            background: rgba(255,255,255,0.9); /* Полупрозрачная подложка для читаемости текста */
         }
 
         .items-grid {
@@ -155,13 +177,6 @@
             color: #6c6c70;
             margin-bottom: 12px;
         }
-        #categoriesScreen {
-        background-image: url('https://sun9-27.userapi.com/s/v1/ig2/DCPWFdfpl0ZK8takuXG4553WRuCYj5KVrwXU1C4huPxurLouFLJe2wDA3AKsRzQ9ZgSvUPGgwUjm0FH-cI9DWaQ6.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720,1440x810,2560x1440&from=bu&cs=2560x0');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        min-height: 100vh;
-    }
     </style>
     <script src="https://vk.com/js/api/xd_connection.js?2" type="text/javascript"></script>
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
@@ -186,6 +201,7 @@
 </div>
 
 <script>
+    // ЗДЕСЬ ВЫ МОЖЕТЕ ЗАМЕНИТЬ ССЫЛКИ НА КАРТИНКИ КАТЕГОРИЙ И ТОВАРОВ
     const categories = [
         { id: "tech", name: "📱 Гаджеты", cover: "https://placekitten.com/400/200", desc: "Смартфоны, часы, наушники" },
         { id: "home", name: "🏠 Дом", cover: "https://placekitten.com/401/200", desc: "Уют и техника для дома" },
